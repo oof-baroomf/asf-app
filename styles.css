@@ -64,6 +64,11 @@ button:hover {
   background-color: #45a049;
 }
 
+input[type="checkbox"] {
+  transform: scale(1.5);
+  margin-right: 10px;
+}
+
 .checkbox-group {
   display: flex;
   flex-wrap: wrap;
