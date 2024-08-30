@@ -48,26 +48,29 @@ async function handleNextScreen(nextScreen, data) {
     const results = calculateResults(schoolData);
     schoolData = { ...schoolData, ...results };
     
-    // Add the school data to the database
-    try {
-      // Authenticate before making the API call
-      await pb.admins.authWithPassword('4s9r1.pocketbase@inbox.testmail.app', 'asdf09871234;lkj');
-      const record = await pb.collection('schools').create({
-        name: schoolData.name,
-        departments: JSON.stringify(schoolData.departments),
-        departmentNumbers: JSON.stringify(schoolData.departmentNumbers),
-        extraAnswers: JSON.stringify(schoolData.extraAnswers),
-        monthlyResults: JSON.stringify(schoolData.monthlyResults),
-        yearlyResults: JSON.stringify(schoolData.yearlyResults),
-        totalMonthly: schoolData.totalMonthly,
-        totalYearly: schoolData.totalYearly,
-        sustainabilityLevel: schoolData.sustainabilityLevel,
-        suggestedYearlyUsage: schoolData.suggestedYearlyUsage,
-        potentialSavings: schoolData.potentialSavings
-      });
-      console.log('School data added to database:', record);
-    } catch (error) {
-      console.error('Error adding school data to database:', error);
+    // Add the school data to the database only if it's a new school
+    if (!(await pb.collection('schools').getFirstListItem(`name="${schoolData.name}"`).catch(() => null))) {
+      try {
+        // Authenticate before making the API call
+        await pb.admins.authWithPassword('4s9r1.pocketbase@inbox.testmail.app', 'asdf09871234;lkj');
+        const record = await pb.collection('schools').create({
+          name: schoolData.name,
+          departments: JSON.stringify(schoolData.departments),
+          departmentNumbers: JSON.stringify(schoolData.departmentNumbers),
+          extraAnswers: JSON.stringify(schoolData.extraAnswers),
+          monthlyResults: JSON.stringify(schoolData.monthlyResults),
+          yearlyResults: JSON.stringify(schoolData.yearlyResults),
+          totalMonthly: schoolData.totalMonthly,
+          totalYearly: schoolData.totalYearly,
+          sustainabilityLevel: schoolData.sustainabilityLevel,
+          suggestedYearlyUsage: schoolData.suggestedYearlyUsage,
+          potentialSavings: schoolData.potentialSavings
+        });
+        console.log('School data added to database:', record);
+        schoolData.id = record.id;
+      } catch (error) {
+        console.error('Error adding school data to database:', error);
+      }
     }
   }
 
@@ -87,13 +90,11 @@ function renderInitializationScreen() {
 
 async function renderSchoolNameInput() {
   app.innerHTML = `
-    <div style="display: flex; flex-direction: column; justify-content: flex-end; height: 70vh;">
+    <div style="display: flex; flex-direction: column; justify-content: flex-end; height: 70vh; paddin-top:7%">
       <form id="schoolNameForm">
-        <img src="logo.png" alt="Paper Consumption Model Logo" style="width: 50%; max-width: 200px; margin: 0 auto 3vw;">
+        <img src="logo.png" alt="Paper Consumption Model Logo" style="width: 50%; max-width: 200px; margin: 2vw auto 1vw;">
         <h1 style="font-size: clamp(36px, 6vw, 72px);">Name of School:</h1>
-        <br>
         <input type="text" id="schoolName" required style="width: 70%; max-width: 500px; margin: 0 auto 20px; font-size: clamp(24px, 4vw, 32px); padding: 10px;">
-        <br>
         <div id="searchResults" style="max-height: 200px; overflow-y: auto; margin-bottom: 20px;"></div>
         <button type="submit" style="width: auto; min-width: 160px; padding: 15px 30px; margin: 0 auto; font-size: clamp(14px, 4vw, 36px);">Next</button>
       </form>
