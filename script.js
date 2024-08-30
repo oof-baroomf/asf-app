@@ -1,6 +1,8 @@
 const app = document.getElementById('app');
+const pb = new PocketBase('http://127.0.0.1:8090');
 let currentScreen = 'initialization';
 let schoolData = {};
+
 
 const departments = [
   'Mathematics', 'Science', 'Social Studies', 'English',
@@ -39,12 +41,34 @@ function renderScreen() {
   }
 }
 
-function handleNextScreen(nextScreen, data) {
+async function handleNextScreen(nextScreen, data) {
   schoolData = { ...schoolData, ...data };
 
   if (nextScreen === 'results') {
     const results = calculateResults(schoolData);
     schoolData = { ...schoolData, ...results };
+    
+    // Add the school data to the database
+    try {
+      // Authenticate before making the API call
+      await pb.admins.authWithPassword('4s9r1.pocketbase@inbox.testmail.app', 'asdf09871234;lkj');
+      const record = await pb.collection('schools').create({
+        name: schoolData.name,
+        departments: JSON.stringify(schoolData.departments),
+        departmentNumbers: JSON.stringify(schoolData.departmentNumbers),
+        extraAnswers: JSON.stringify(schoolData.extraAnswers),
+        monthlyResults: JSON.stringify(schoolData.monthlyResults),
+        yearlyResults: JSON.stringify(schoolData.yearlyResults),
+        totalMonthly: schoolData.totalMonthly,
+        totalYearly: schoolData.totalYearly,
+        sustainabilityLevel: schoolData.sustainabilityLevel,
+        suggestedYearlyUsage: schoolData.suggestedYearlyUsage,
+        potentialSavings: schoolData.potentialSavings
+      });
+      console.log('School data added to database:', record);
+    } catch (error) {
+      console.error('Error adding school data to database:', error);
+    }
   }
 
   currentScreen = nextScreen;
@@ -61,19 +85,67 @@ function renderInitializationScreen() {
   `;
 }
 
-function renderSchoolNameInput() {
+async function renderSchoolNameInput() {
   app.innerHTML = `
     <div style="display: flex; flex-direction: column; justify-content: flex-end; height: 70vh;">
-      <form onsubmit="event.preventDefault(); handleNextScreen('departmentSelection', { name: document.getElementById('schoolName').value })">
+      <form id="schoolNameForm">
         <img src="logo.png" alt="Paper Consumption Model Logo" style="width: 50%; max-width: 200px; margin: 0 auto 3vw;">
         <h1 style="font-size: clamp(36px, 6vw, 72px);">Name of School:</h1>
         <br>
-        <input type="text" id="schoolName" required style="width: 70%; max-width: 500px; margin: 0 auto 40px; font-size: clamp(24px, 4vw, 32px); padding: 10px;">
-        <br>  
+        <input type="text" id="schoolName" required style="width: 70%; max-width: 500px; margin: 0 auto 20px; font-size: clamp(24px, 4vw, 32px); padding: 10px;">
+        <br>
+        <div id="searchResults" style="max-height: 200px; overflow-y: auto; margin-bottom: 20px;"></div>
         <button type="submit" style="width: auto; min-width: 160px; padding: 15px 30px; margin: 0 auto; font-size: clamp(14px, 4vw, 36px);">Next</button>
       </form>
     </div>
   `;
+
+  const schoolNameInput = document.getElementById('schoolName');
+  const searchResults = document.getElementById('searchResults');
+  const schoolNameForm = document.getElementById('schoolNameForm');
+
+  schoolNameInput.addEventListener('input', async (e) => {
+    const searchTerm = e.target.value;
+    if (searchTerm.length > 2) {
+      try {
+        const resultList = await pb.collection('schools').getList(1, 5, {
+          filter: `name ~ "${searchTerm}"`
+        });
+        
+        searchResults.innerHTML = resultList.items.map(school => `
+          <div style="cursor: pointer; padding: 10px; border-bottom: 1px solid #ddd;" onclick="selectExistingSchool('${school.id}')">
+            ${school.name}
+          </div>
+        `).join('');
+      } catch (error) {
+        console.error('Error searching for schools:', error);
+      }
+    } else {
+      searchResults.innerHTML = '';
+    }
+  });
+
+  schoolNameForm.onsubmit = (e) => {
+    e.preventDefault();
+    handleNextScreen('departmentSelection', { name: schoolNameInput.value });
+  };
+}
+
+async function selectExistingSchool(schoolId) {
+  try {
+    const school = await pb.collection('schools').getOne(schoolId);
+    schoolData = {
+      ...school,
+      departments: JSON.parse(school.departments),
+      departmentNumbers: JSON.parse(school.departmentNumbers),
+      extraAnswers: JSON.parse(school.extraAnswers),
+      monthlyResults: JSON.parse(school.monthlyResults),
+      yearlyResults: JSON.parse(school.yearlyResults)
+    };
+    handleNextScreen('results');
+  } catch (error) {
+    console.error('Error fetching school data:', error);
+  }
 }
 
 function renderDepartmentSelection() {
@@ -217,9 +289,34 @@ function renderResults() {
       </table>
       <p style="font-size: clamp(18px, 3vw, 32px); margin-top: 2vw;">Total Monthly Consumption: ${Number(Math.round(schoolData.totalMonthly)).toLocaleString(undefined, {maximumSignificantDigits: 5})} sheets</p>
       <p style="font-size: clamp(18px, 3vw, 32px); margin-bottom: 2vw;">Total Yearly Consumption: ${Number(Math.round(schoolData.totalYearly)).toLocaleString(undefined, {maximumSignificantDigits: 5})} sheets</p>
+      <div id="consumptionGraph" style="width:100%; height:400px;"></div>
       <button onclick="handleNextScreen('statistics')" style="width: auto; min-width: 140px; padding: 12px 24px; margin: 20px auto 0; font-size: clamp(20px, 3.5vw, 32px);">View Statistics</button>
     </div>
   `;
+
+  // Generate consumption data for each month
+  const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+  const consumptionData = months.map(month => {
+    return schoolData.departments.reduce((total, dept) => {
+      return total + calculateDepartmentConsumption(
+        dept,
+        month,
+        schoolData.departmentNumbers[dept],
+        schoolData.extraAnswers.avgConsumption
+      );
+    }, 0);
+  });
+
+  // Create the graph using Plotly
+  Plotly.newPlot('consumptionGraph', [{
+    x: months,
+    y: consumptionData,
+    type: 'scatter'
+  }], {
+    title: 'Monthly Paper Consumption',
+    xaxis: { title: 'Month' },
+    yaxis: { title: 'Sheets of Paper' }
+  });
 }
 
 function renderStatistics() {
