@@ -90,13 +90,13 @@ function renderInitializationScreen() {
 
 async function renderSchoolNameInput() {
   app.innerHTML = `
-    <div style="display: flex; flex-direction: column; justify-content: flex-end; height: 70vh; paddin-top:7%">
+    <div style="display: flex; flex-direction: column; justify-content: flex-end; height: 70vh; padding-top:7%">
       <form id="schoolNameForm">
         <img src="logo.png" alt="Paper Consumption Model Logo" style="width: 50%; max-width: 200px; margin: 2vw auto 1vw;">
         <h1 style="font-size: clamp(36px, 6vw, 72px);">Name of School:</h1>
         <input type="text" id="schoolName" required style="width: 70%; max-width: 500px; margin: 0 auto 20px; font-size: clamp(24px, 4vw, 32px); padding: 10px;">
         <div id="searchResults" style="max-height: 200px; overflow-y: auto; margin-bottom: 20px;"></div>
-        <button type="submit" style="width: auto; min-width: 160px; padding: 15px 30px; margin: 0 auto; font-size: clamp(14px, 4vw, 36px);">Next</button>
+        <button type="submit" id="nextButton" style="width: auto; min-width: 160px; padding: 15px 30px; margin: 0 auto; font-size: clamp(14px, 4vw, 36px); display: none;">Next</button>
       </form>
     </div>
   `;
@@ -104,31 +104,64 @@ async function renderSchoolNameInput() {
   const schoolNameInput = document.getElementById('schoolName');
   const searchResults = document.getElementById('searchResults');
   const schoolNameForm = document.getElementById('schoolNameForm');
+  const nextButton = document.getElementById('nextButton');
+
+  let selectedSchoolId = null;
 
   schoolNameInput.addEventListener('input', async (e) => {
     const searchTerm = e.target.value;
     if (searchTerm.length > 2) {
       try {
         const resultList = await pb.collection('schools').getList(1, 5, {
-          filter: `name ~ "${searchTerm}"`
+          filter: `name ~ "${searchTerm}"`,
+          sort: '-created'
         });
         
-        searchResults.innerHTML = resultList.items.map(school => `
-          <div style="cursor: pointer; padding: 10px; border-bottom: 1px solid #ddd;" onclick="selectExistingSchool('${school.id}')">
-            ${school.name}
-          </div>
-        `).join('');
+        const today = new Date().toLocaleDateString('en-US');
+        let searchResultsHTML = '<div style="border-top: 1px solid #ddd;"></div>';
+        searchResultsHTML += resultList.items.map(school => {
+          const creationDate = new Date(school.created).toLocaleDateString('en-US');
+          return `
+            <div class="school-option" data-id="${school.id}" style="cursor: pointer; padding: 10px; border-bottom: 1px solid #ddd;">
+              ${school.name} (${creationDate})
+            </div>
+          `;
+        }).join('');
+
+        if (resultList.items.length === 0 || resultList.items[0].created.split('T')[0] !== new Date().toISOString().split('T')[0]) {
+          searchResultsHTML += `
+            <div class="school-option" data-id="new" style="cursor: pointer; padding: 10px; border-bottom: 1px solid #ddd;">
+              ${searchTerm} (create new)
+            </div>
+          `;
+        }
+
+        searchResults.innerHTML = searchResultsHTML;
+
+        document.querySelectorAll('.school-option').forEach(option => {
+          option.addEventListener('click', function() {
+            document.querySelectorAll('.school-option').forEach(opt => opt.style.backgroundColor = '');
+            this.style.backgroundColor = '#45a049';
+            selectedSchoolId = this.dataset.id;
+            nextButton.style.display = 'block';
+          });
+        });
       } catch (error) {
         console.error('Error searching for schools:', error);
       }
     } else {
       searchResults.innerHTML = '';
+      nextButton.style.display = 'none';
     }
   });
 
   schoolNameForm.onsubmit = (e) => {
     e.preventDefault();
-    handleNextScreen('departmentSelection', { name: schoolNameInput.value });
+    if (selectedSchoolId === 'new') {
+      createNewSchool(schoolNameInput.value);
+    } else if (selectedSchoolId) {
+      selectExistingSchool(selectedSchoolId);
+    }
   };
 }
 
@@ -147,6 +180,12 @@ async function selectExistingSchool(schoolId) {
   } catch (error) {
     console.error('Error fetching school data:', error);
   }
+}
+
+async function createNewSchool(schoolName) {
+  const currentDate = new Date().toLocaleDateString('en-US');
+  const formattedSchoolName = `${schoolName} (${currentDate})`;
+  handleNextScreen('departmentSelection', { name: formattedSchoolName });
 }
 
 function renderDepartmentSelection() {
