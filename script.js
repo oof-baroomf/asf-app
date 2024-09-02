@@ -1,5 +1,5 @@
 const app = document.getElementById('app');
-const pb = new PocketBase('http://127.0.0.1:8090');
+const pb = new PocketBase('192.9.226.102:8090');
 let currentScreen = 'initialization';
 let schoolData = {};
 
