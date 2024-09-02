@@ -36,6 +36,9 @@ function renderScreen() {
     case 'recommendations':
       renderRecommendations();
       break;
+    case 'visualizations':
+      renderVisualizations();
+      break;
     default:
       app.innerHTML = '<div>Unknown screen</div>';
   }
@@ -55,6 +58,7 @@ async function handleNextScreen(nextScreen, data) {
         await pb.admins.authWithPassword('4s9r1.pocketbase@inbox.testmail.app', 'asdf09871234;lkj');
         const record = await pb.collection('schools').create({
           name: schoolData.name,
+          schoolNameNoDate: schoolData.schoolNameNoDate,
           departments: JSON.stringify(schoolData.departments),
           departmentNumbers: JSON.stringify(schoolData.departmentNumbers),
           extraAnswers: JSON.stringify(schoolData.extraAnswers),
@@ -96,7 +100,6 @@ async function renderSchoolNameInput() {
         <h1 style="font-size: clamp(36px, 6vw, 72px);">Name of School:</h1>
         <input type="text" id="schoolName" required style="width: 70%; max-width: 500px; margin: 0 auto 20px; font-size: clamp(24px, 4vw, 32px); padding: 10px;">
         <div id="searchResults" style="max-height: 200px; overflow-y: auto; margin-bottom: 20px;"></div>
-        <button type="submit" id="nextButton" style="width: auto; min-width: 160px; padding: 15px 30px; margin: 0 auto; font-size: clamp(14px, 4vw, 36px); display: none;">Next</button>
       </form>
     </div>
   `;
@@ -104,9 +107,6 @@ async function renderSchoolNameInput() {
   const schoolNameInput = document.getElementById('schoolName');
   const searchResults = document.getElementById('searchResults');
   const schoolNameForm = document.getElementById('schoolNameForm');
-  const nextButton = document.getElementById('nextButton');
-
-  let selectedSchoolId = null;
 
   schoolNameInput.addEventListener('input', async (e) => {
     const searchTerm = e.target.value;
@@ -120,10 +120,9 @@ async function renderSchoolNameInput() {
         const today = new Date().toLocaleDateString('en-US');
         let searchResultsHTML = '<div style="border-top: 1px solid #ddd;"></div>';
         searchResultsHTML += resultList.items.map(school => {
-          const creationDate = new Date(school.created).toLocaleDateString('en-US');
           return `
             <div class="school-option" data-id="${school.id}" style="cursor: pointer; padding: 10px; border-bottom: 1px solid #ddd;">
-              ${school.name} (${creationDate})
+              ${school.name}
             </div>
           `;
         }).join('');
@@ -140,10 +139,12 @@ async function renderSchoolNameInput() {
 
         document.querySelectorAll('.school-option').forEach(option => {
           option.addEventListener('click', function() {
-            document.querySelectorAll('.school-option').forEach(opt => opt.style.backgroundColor = '');
-            this.style.backgroundColor = '#45a049';
-            selectedSchoolId = this.dataset.id;
-            nextButton.style.display = 'block';
+            const selectedSchoolId = this.dataset.id;
+            if (selectedSchoolId === 'new') {
+              createNewSchool(schoolNameInput.value);
+            } else {
+              selectExistingSchool(selectedSchoolId);
+            }
           });
         });
       } catch (error) {
@@ -151,7 +152,6 @@ async function renderSchoolNameInput() {
       }
     } else {
       searchResults.innerHTML = '';
-      nextButton.style.display = 'none';
     }
   });
 
@@ -185,7 +185,7 @@ async function selectExistingSchool(schoolId) {
 async function createNewSchool(schoolName) {
   const currentDate = new Date().toLocaleDateString('en-US');
   const formattedSchoolName = `${schoolName} (${currentDate})`;
-  handleNextScreen('departmentSelection', { name: formattedSchoolName });
+  handleNextScreen('departmentSelection', { name: formattedSchoolName, schoolNameNoDate: schoolName });
 }
 
 function renderDepartmentSelection() {
@@ -285,28 +285,7 @@ function renderResults() {
     <div style="display: flex; flex-direction: column; justify-content: flex-start; min-height: 100vh; padding: 20px;">
       <img src="logo.png" alt="Paper Consumption Model Logo" style="width: 50%; max-width: 200px; margin: 0 auto 2vw;">
       <h1 style="font-size: clamp(32px, 5vw, 64px); margin-bottom: 3vw;">Results for ${schoolData.name}</h1>
-      <h3 style="font-size: clamp(24px, 4vw, 48px); margin-bottom: 2vw;">Monthly Paper Consumption</h3>
-      <table class="results-table" style="font-size: clamp(16px, 2.5vw, 24px);">
-        <thead>
-          <tr>
-            <th>Department</th>
-            <th>Sheets</th>
-            <th>Cost (Paper)</th>
-            <th>Cost (Ink)</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${schoolData.departments.map(dept => `
-            <tr>
-              <td>${dept}</td>
-              <td>${Number(Math.round(schoolData.monthlyResults[dept])).toLocaleString(undefined, {maximumSignificantDigits: 5})}</td>
-              <td>$${Number(Math.round(schoolData.monthlyResults[dept] * 0.015)).toLocaleString(undefined, {maximumSignificantDigits: 5})}</td>
-              <td>$${Number(Math.round(schoolData.monthlyResults[dept] * 0.05)).toLocaleString(undefined, {maximumSignificantDigits: 5})} - $${Number(Math.round(schoolData.monthlyResults[dept] * 0.15)).toLocaleString(undefined, {maximumSignificantDigits: 5})}</td>
-            </tr>
-          `).join('')}
-        </tbody>
-      </table>
-      <h3 style="font-size: clamp(24px, 4vw, 48px); margin-top: 3vw; margin-bottom: 2vw;">Yearly Paper Consumption</h3>
+      <h3 style="font-size: clamp(24px, 4vw, 48px); margin-bottom: 2vw;">Yearly Paper Consumption</h3>
       <table class="results-table" style="font-size: clamp(16px, 2.5vw, 24px);">
         <thead>
           <tr>
@@ -327,36 +306,203 @@ function renderResults() {
           `).join('')}
         </tbody>
       </table>
-      <p style="font-size: clamp(18px, 3vw, 32px); margin-top: 2vw;">Total Monthly Consumption: ${Number(Math.round(schoolData.totalMonthly)).toLocaleString(undefined, {maximumSignificantDigits: 5})} sheets</p>
-      <p style="font-size: clamp(18px, 3vw, 32px); margin-bottom: 2vw;">Total Yearly Consumption: ${Number(Math.round(schoolData.totalYearly)).toLocaleString(undefined, {maximumSignificantDigits: 5})} sheets</p>
-      <div id="consumptionGraph" style="width:100%; height:400px;"></div>
+      <p style="font-size: clamp(18px, 3vw, 32px); margin-top: 2vw;">Total Yearly Consumption: ${Number(Math.round(schoolData.totalYearly)).toLocaleString(undefined, {maximumSignificantDigits: 5})} sheets</p>
+      <button onclick="handleNextScreen('visualizations')" style="width: auto; min-width: 140px; padding: 12px 24px; margin: 20px auto 0; font-size: clamp(20px, 3.5vw, 32px);">View Visualizations</button>
+    </div>
+  `;
+}
+
+async function renderVisualizations() {
+  // Check if the user is authenticated
+  if (!pb.authStore.isValid) {
+    console.log('User is not authenticated. Attempting to re-authenticate...');
+    try {
+      await pb.admins.authWithPassword('4s9r1.pocketbase@inbox.testmail.app', 'asdf09871234;lkj');
+      console.log('Re-authentication successful');
+    } catch (authError) {
+      console.error('Re-authentication failed:', authError);
+      app.innerHTML = '<div>Error: Unable to authenticate. Please refresh the page and try again.</div>';
+      return;
+    }
+  }
+
+  app.innerHTML = `
+    <div style="display: flex; flex-direction: column; justify-content: flex-start; min-height: 100vh; padding: 20px;">
+      <img src="logo.png" alt="Paper Consumption Model Logo" style="width: 50%; max-width: 200px; margin: 0 auto 2vw;">
+      <h1 style="font-size: clamp(32px, 5vw, 64px); margin-bottom: 3vw;">Visualizations for ${schoolData.name}</h1>
+      <div id="comparisonGraph" style="width:100%; height:400px;"></div>
+      <div id="departmentGraph" style="width:100%; height:400px;"></div>
+      <div id="consumptionOverTimeGraph" style="width:100%; height:400px;"></div>
       <button onclick="handleNextScreen('statistics')" style="width: auto; min-width: 140px; padding: 12px 24px; margin: 20px auto 0; font-size: clamp(20px, 3.5vw, 32px);">View Statistics</button>
     </div>
   `;
 
-  // Generate consumption data for each month
-  const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
-  const consumptionData = months.map(month => {
-    return schoolData.departments.reduce((total, dept) => {
-      return total + calculateDepartmentConsumption(
-        dept,
-        month,
-        schoolData.departmentNumbers[dept],
-        schoolData.extraAnswers.avgConsumption
-      );
-    }, 0);
-  });
+  await renderComparisonGraph();
+  renderDepartmentGraph();
+  await renderConsumptionOverTimeGraph();
+}
 
-  // Create the graph using Plotly
-  Plotly.newPlot('consumptionGraph', [{
-    x: months,
-    y: consumptionData,
-    type: 'scatter'
+async function renderComparisonGraph() {
+  const totalStaff = Object.values(schoolData.departmentNumbers).reduce((sum, num) => sum + num, 0);
+  console.log('Total staff:', totalStaff);
+  
+  try {
+    console.log('Fetching all schools for comparison');
+
+    const allSchools = await pb.collection('schools').getList(1, 1000, {
+      sort: '-created'
+    });
+
+    console.log('Total schools found:', allSchools.items.length);
+
+    const schoolsWithConsumptionPerStaff = allSchools.items.map(school => {
+      const schoolTotalStaff = Object.values(JSON.parse(school.departmentNumbers)).reduce((sum, num) => sum + num, 0);
+      const consumptionPerStaff = school.totalYearly / schoolTotalStaff;
+      console.log(`School: ${school.name}, Total staff: ${schoolTotalStaff}, Consumption per staff: ${consumptionPerStaff}`);
+      return {
+        ...school,
+        consumptionPerStaff: consumptionPerStaff
+      };
+    });
+
+    const currentSchoolConsumptionPerStaff = schoolData.totalYearly / totalStaff;
+    console.log('Current school consumption per staff:', currentSchoolConsumptionPerStaff);
+
+    const closestSchools = schoolsWithConsumptionPerStaff
+      .filter(school => school.schoolNameNoDate !== schoolData.schoolNameNoDate)
+      .sort((a, b) => Math.abs(a.consumptionPerStaff - currentSchoolConsumptionPerStaff) - 
+                      Math.abs(b.consumptionPerStaff - currentSchoolConsumptionPerStaff))
+      .slice(0, 5);
+
+    console.log('Closest schools:', closestSchools.map(school => school.name));
+
+    const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+    const traces = [{
+      x: months,
+      y: months.map(month => calculateTotalConsumption(schoolData, month) / totalStaff),
+      type: 'scatter',
+      mode: 'lines+markers',
+      name: schoolData.name
+    }];
+
+    closestSchools.forEach(school => {
+      const schoolTotalStaff = Object.values(JSON.parse(school.departmentNumbers)).reduce((sum, num) => sum + num, 0);
+      const schoolTrace = {
+        x: months,
+        y: months.map(month => {
+          const monthlyConsumption = calculateTotalConsumption(school, month);
+          console.log(`${school.name} - ${month} consumption: ${monthlyConsumption}`);
+          return monthlyConsumption / schoolTotalStaff;
+        }),
+        type: 'scatter',
+        mode: 'lines+markers',
+        name: school.name
+      };
+      console.log(`Trace for ${school.name}:`, schoolTrace);
+      traces.push(schoolTrace);
+    });
+
+    console.log('All traces:', traces);
+
+    Plotly.newPlot('comparisonGraph', traces, {
+      title: 'Monthly Consumption Comparison (Per Faculty Member)',
+      xaxis: { title: 'Month' },
+      yaxis: { title: 'Sheets of Paper per Faculty Member' }
+    });
+  } catch (error) {
+    console.error('Error fetching schools for comparison:', error);
+    console.log('Error details:', error.data);
+    document.getElementById('comparisonGraph').style.display = 'none';
+  }
+}
+
+function renderDepartmentGraph() {
+  const departments = Object.keys(schoolData.yearlyResults);
+  console.log('Departments:', departments);
+  if (departments.length <= 1) {
+    console.log('Not enough departments to render graph');
+    document.getElementById('departmentGraph').style.display = 'none';
+    return;
+  }
+
+  const consumption = Object.values(schoolData.yearlyResults);
+  console.log('Department consumption:', consumption);
+
+  Plotly.newPlot('departmentGraph', [{
+    x: departments,
+    y: consumption,
+    type: 'bar'
   }], {
-    title: 'Monthly Paper Consumption',
-    xaxis: { title: 'Month' },
+    title: 'Yearly Consumption by Department',
+    xaxis: { title: 'Department' },
     yaxis: { title: 'Sheets of Paper' }
   });
+}
+
+async function renderConsumptionOverTimeGraph() {
+  try {
+    const filter = `schoolNameNoDate = "${schoolData.schoolNameNoDate}"`;
+    console.log('Consumption over time graph filter:', filter);
+
+    const schoolEntries = await pb.collection('schools').getList(1, 100, {
+      filter: filter,
+      sort: 'created'
+    });
+
+    console.log('School entries found:', schoolEntries.items.length);
+
+    if (schoolEntries.items.length < 3) {
+      console.log('Not enough data points to render consumption over time graph');
+      document.getElementById('consumptionOverTimeGraph').style.display = 'none';
+      return;
+    }
+
+    const dates = schoolEntries.items.map(entry => new Date(entry.created).toLocaleDateString());
+    const consumption = schoolEntries.items.map(entry => entry.totalYearly);
+    console.log('Dates:', dates);
+    console.log('Consumption:', consumption);
+
+    Plotly.newPlot('consumptionOverTimeGraph', [{
+      x: dates,
+      y: consumption,
+      type: 'scatter',
+      mode: 'lines+markers'
+    }], {
+      title: 'Yearly Consumption Over Time',
+      xaxis: { title: 'Date' },
+      yaxis: { title: 'Sheets of Paper' }
+    });
+  } catch (error) {
+    console.error('Error fetching school entries:', error);
+    console.log('Error details:', error.data);
+    document.getElementById('consumptionOverTimeGraph').style.display = 'none';
+  }
+}
+
+function calculateTotalConsumption(school, month) {
+  const departmentNumbers = typeof school.departmentNumbers === 'string' ? JSON.parse(school.departmentNumbers) : school.departmentNumbers;
+  const extraAnswers = typeof school.extraAnswers === 'string' ? JSON.parse(school.extraAnswers) : school.extraAnswers;
+  
+  if (!departmentNumbers || !extraAnswers || !extraAnswers.avgConsumption) {
+    console.error('Missing required data for school:', school.name);
+    return NaN;
+  }
+
+  const totalConsumption = Object.keys(departmentNumbers).reduce((total, dept) => {
+    const deptConsumption = calculateDepartmentConsumption(
+      dept,
+      month,
+      departmentNumbers[dept],
+      extraAnswers.avgConsumption
+    );
+    if (isNaN(deptConsumption)) {
+      console.error(`NaN consumption for ${school.name}, ${dept}, ${month}`);
+    }
+    return total + (isNaN(deptConsumption) ? 0 : deptConsumption);
+  }, 0);
+
+  console.log(`${school.name} - ${month} total consumption: ${totalConsumption}`);
+  return totalConsumption;
 }
 
 function renderStatistics() {
@@ -422,8 +568,8 @@ function renderStatistics() {
 function renderRecommendations() {
   let content = `
     <div style="text-align: center; margin-bottom: 20px;">
-        <img src="logo.png" alt="Paper Consumption Model Logo" style="max-width: 200px; height: auto;">
-      </div>
+      <img src="logo.png" alt="Paper Consumption Model Logo" style="max-width: 200px; height: auto;">
+    </div>
   `;
 
   switch (schoolData.sustainabilityLevel) {
