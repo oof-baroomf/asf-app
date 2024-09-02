@@ -216,8 +216,7 @@ function renderDepartmentSelection() {
 
 function renderDepartmentNumbers() {
   app.innerHTML = `
-    <div style="display: flex; flex-direction: column; justify-content: flex-start; min-height: 100vh; padding: 20px;">
-      <img src="logo.png" alt="Paper Consumption Model Logo" style="width: 50%; max-width: 200px; margin: 0 auto 2vw;">
+    <div style="display: flex; flex-direction: column; justify-content: flex-start; min-height: 100vh; padding: 20px;">      <img src="logo.png" alt="Paper Consumption Model Logo" style="width: 50%; max-width: 200px; margin: 0 auto 2vw;">
       <h1 style="font-size: clamp(32px, 5vw, 64px); margin-bottom: 3vw;">Enter Department Sizes</h1>
       <form id="departmentSizesForm" style="width: 90%; max-width: 500px; margin: 0 auto;">
         ${schoolData.departments.map(department => `
