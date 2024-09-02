@@ -1,8 +1,8 @@
 const app = document.getElementById('app');
-const pb = new PocketBase('192.9.226.102:8090');
+const pb = new PocketBase('http://192.9.226.102:8090');
 let currentScreen = 'initialization';
 let schoolData = {};
-
+pb.autoCancellation(false);
 
 const departments = [
   'Mathematics', 'Science', 'Social Studies', 'English',
@@ -55,7 +55,7 @@ async function handleNextScreen(nextScreen, data) {
     if (!(await pb.collection('schools').getFirstListItem(`name="${schoolData.name}"`).catch(() => null))) {
       try {
         // Authenticate before making the API call
-        await pb.admins.authWithPassword('4s9r1.pocketbase@inbox.testmail.app', 'asdf09871234;lkj');
+        // await pb.admins.authWithPassword('4s9r1.pocketbase@inbox.testmail.app', 'asdf09871234;lkj');
         const record = await pb.collection('schools').create({
           name: schoolData.name,
           schoolNameNoDate: schoolData.schoolNameNoDate,
