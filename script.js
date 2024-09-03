@@ -1,5 +1,5 @@
 const app = document.getElementById('app');
-const pb = new PocketBase('http://192.9.226.102:8090');
+const pb = new PocketBase('https://192.9.226.102:8090');
 let currentScreen = 'initialization';
 let schoolData = {};
 pb.autoCancellation(false);
@@ -92,7 +92,7 @@ function renderInitializationScreen() {
 
 async function renderSchoolNameInput() {
   app.innerHTML = `
-    <div style="display: flex; flex-direction: column; justify-content: flex-end; height: 70vh; padding-top:7%">
+    <div style="display: flex; flex-direction: column; justify-content: flex-end; height: 70vh; padding-top:0%">
       <form id="schoolNameForm">
         <img src="logo.png" alt="Paper Consumption Model Logo" style="width: 50%; max-width: 200px; margin: 1vw auto 1vw;">
         <h1 style="font-size: clamp(36px, 6vw, 72px);">Name of School:</h1>
