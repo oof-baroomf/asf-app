@@ -94,7 +94,7 @@ async function renderSchoolNameInput() {
   app.innerHTML = `
     <div style="display: flex; flex-direction: column; justify-content: flex-end; height: 70vh; padding-top:7%">
       <form id="schoolNameForm">
-        <img src="logo.png" alt="Paper Consumption Model Logo" style="width: 50%; max-width: 200px; margin: 2vw auto 1vw;">
+        <img src="logo.png" alt="Paper Consumption Model Logo" style="width: 50%; max-width: 200px; margin: 1vw auto 1vw;">
         <h1 style="font-size: clamp(36px, 6vw, 72px);">Name of School:</h1>
         <input type="text" id="schoolName" required style="width: 70%; max-width: 500px; margin: 0 auto 20px; font-size: clamp(24px, 4vw, 32px); padding: 10px;">
         <div id="searchResults" style="max-height: 200px; overflow-y: auto; margin-bottom: 20px;"></div>
