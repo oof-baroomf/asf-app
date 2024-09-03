@@ -54,8 +54,6 @@ async function handleNextScreen(nextScreen, data) {
     // Add the school data to the database only if it's a new school
     if (!(await pb.collection('schools').getFirstListItem(`name="${schoolData.name}"`).catch(() => null))) {
       try {
-        // Authenticate before making the API call
-        // await pb.admins.authWithPassword('4s9r1.pocketbase@inbox.testmail.app', 'asdf09871234;lkj');
         const record = await pb.collection('schools').create({
           name: schoolData.name,
           schoolNameNoDate: schoolData.schoolNameNoDate,
