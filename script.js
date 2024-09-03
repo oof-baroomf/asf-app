@@ -1,5 +1,5 @@
 const app = document.getElementById('app');
-const pb = new PocketBase('https://192.9.226.102:8090');
+const pb = new PocketBase('https://192.9.226.102:443');
 let currentScreen = 'initialization';
 let schoolData = {};
 pb.autoCancellation(false);
