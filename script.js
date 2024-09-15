@@ -82,7 +82,7 @@ async function handleNextScreen(nextScreen, data) {
 
 function renderInitializationScreen() {
   app.innerHTML = `
-    <div style="display: flex; flex-direction: column; justify-content: flex-end; height: 70vh;">
+    <div style="display: flex; flex-direction: column; justify-content: flex-start; height: 100vh; padding-top: 15vh;">
       <img src="logo.png" alt="Paper Consumption Model Logo" style="width: 50%; max-width: 200px; margin: 0 auto 3vw;">
       <h1 style="font-size: clamp(36px, 6vw, 72px); margin-bottom: 4vw;">Paper Consumption Model</h1>
       <button onclick="handleNextScreen('schoolName')" style="width: auto; min-width: 160px; padding: 15px 30px; margin: 0 auto 30px; font-size: clamp(24px, 4vw, 36px);">Start</button>
@@ -92,9 +92,9 @@ function renderInitializationScreen() {
 
 async function renderSchoolNameInput() {
   app.innerHTML = `
-    <div style="display: flex; flex-direction: column; justify-content: flex-end; height: 70vh; padding-top:0%">
+    <div style="display: flex; flex-direction: column; justify-content: flex-start; height: 100vh; padding-top: 15vh;">
       <form id="schoolNameForm">
-        <img src="logo.png" alt="Paper Consumption Model Logo" style="width: 50%; max-width: 200px; margin: 1vw auto 1vw;">
+        <img src="logo.png" alt="Paper Consumption Model Logo" style="width: 50%; max-width: 200px; margin: 0 auto 3vw;">
         <h1 style="font-size: clamp(36px, 6vw, 72px);">Name of School:</h1>
         <input type="text" id="schoolName" required style="width: 70%; max-width: 500px; margin: 0 auto 20px; font-size: clamp(24px, 4vw, 32px); padding: 10px;">
         <div id="searchResults" style="max-height: 200px; overflow-y: auto; margin-bottom: 20px;"></div>
@@ -138,7 +138,7 @@ async function renderSchoolNameInput() {
         document.querySelectorAll('.school-option').forEach(option => {
           option.addEventListener('click', function() {
             const selectedSchoolId = this.dataset.id;
-            if (selectedSchoolId === 'new') {
+            if (!selectedSchoolId) {
               createNewSchool(schoolNameInput.value);
             } else {
               selectExistingSchool(selectedSchoolId);
@@ -155,7 +155,7 @@ async function renderSchoolNameInput() {
 
   schoolNameForm.onsubmit = (e) => {
     e.preventDefault();
-    if (selectedSchoolId === 'new') {
+    if (!selectedSchoolId) {
       createNewSchool(schoolNameInput.value);
     } else if (selectedSchoolId) {
       selectExistingSchool(selectedSchoolId);
@@ -188,7 +188,7 @@ async function createNewSchool(schoolName) {
 
 function renderDepartmentSelection() {
   app.innerHTML = `
-    <div style="display: flex; flex-direction: column; justify-content: flex-start; min-height: 100vh; padding: 20px;">
+    <div style="display: flex; flex-direction: column; justify-content: flex-start; min-height: 100vh; padding-top: 15vh;">
       <img src="logo.png" alt="Paper Consumption Model Logo" style="width: 50%; max-width: 200px; margin: 0 auto 2vw;">
       <h1 style="font-size: clamp(32px, 5vw, 64px); margin-bottom: 3vw;">Select Departments</h1>
       <form id="departmentForm" style="width: 90%; max-width: 500px; margin: 0 auto;">
@@ -214,7 +214,8 @@ function renderDepartmentSelection() {
 
 function renderDepartmentNumbers() {
   app.innerHTML = `
-    <div style="display: flex; flex-direction: column; justify-content: flex-start; min-height: 100vh; padding: 20px;">      <img src="logo.png" alt="Paper Consumption Model Logo" style="width: 50%; max-width: 200px; margin: 0 auto 2vw;">
+    <div style="display: flex; flex-direction: column; justify-content: flex-start; min-height: 100vh; padding-top: 15vh;">
+      <img src="logo.png" alt="Paper Consumption Model Logo" style="width: 50%; max-width: 200px; margin: 0 auto 2vw;">
       <h1 style="font-size: clamp(32px, 5vw, 64px); margin-bottom: 3vw;">Enter Department Sizes</h1>
       <form id="departmentSizesForm" style="width: 90%; max-width: 500px; margin: 0 auto;">
         ${schoolData.departments.map(department => `
@@ -242,7 +243,7 @@ function renderDepartmentNumbers() {
 
 function renderExtraQuestions() {
   app.innerHTML = `
-    <div style="display: flex; flex-direction: column; justify-content: flex-start; min-height: 100vh; padding: 20px;">
+    <div style="display: flex; flex-direction: column; justify-content: flex-start; min-height: 100vh; padding-top: 15vh;">
       <img src="logo.png" alt="Paper Consumption Model Logo" style="width: 50%; max-width: 200px; margin: 0 auto 2vw;">
       <h1 style="font-size: clamp(32px, 5vw, 64px); margin-bottom: 3vw;">Additional Questions</h1>
       <form id="extraQuestionsForm" style="width: 90%; max-width: 500px; margin: 0 auto;">
@@ -279,7 +280,7 @@ function renderExtraQuestions() {
 
 function renderResults() {
   app.innerHTML = `
-    <div style="display: flex; flex-direction: column; justify-content: flex-start; min-height: 100vh; padding: 20px;">
+    <div style="display: flex; flex-direction: column; justify-content: flex-start; min-height: 100vh; padding-top: 15vh;">
       <img src="logo.png" alt="Paper Consumption Model Logo" style="width: 50%; max-width: 200px; margin: 0 auto 2vw;">
       <h1 style="font-size: clamp(32px, 5vw, 64px); margin-bottom: 3vw;">Results for ${schoolData.name}</h1>
       <h3 style="font-size: clamp(24px, 4vw, 48px); margin-bottom: 2vw;">Yearly Paper Consumption</h3>
