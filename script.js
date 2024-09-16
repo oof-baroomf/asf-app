@@ -315,7 +315,7 @@ async function renderVisualizations() {
   if (!pb.authStore.isValid) {
     console.log('User is not authenticated. Attempting to re-authenticate...');
     try {
-      await pb.admins.authWithPassword('4s9r1.pocketbase@inbox.testmail.app', 'asdf09871234;lkj');
+      await pb.admins.authWithPassword('goobydooby@doobygooby.goodybooby', 'gOoDmOrNiNg');
       console.log('Re-authentication successful');
     } catch (authError) {
       console.error('Re-authentication failed:', authError);
