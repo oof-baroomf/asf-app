@@ -125,20 +125,23 @@ async function renderSchoolNameInput() {
           `;
         }).join('');
 
+        let selectedSchoolId = null;
+        
         if (resultList.items.length === 0 || resultList.items[0].created.split('T')[0] !== new Date().toISOString().split('T')[0]) {
           searchResultsHTML += `
             <div class="school-option" data-id="new" style="cursor: pointer; padding: 10px; border-bottom: 1px solid #ddd;">
               ${searchTerm} (create new)
             </div>
           `;
+          selectedSchoolId = true;
         }
 
         searchResults.innerHTML = searchResultsHTML;
 
         document.querySelectorAll('.school-option').forEach(option => {
           option.addEventListener('click', function() {
-            const selectedSchoolId = this.dataset.id;
-            if (!selectedSchoolId) {
+            const selectedSchoolId = selectedSchoolId || this.dataset.id;
+            if (selectedSchoolId === true) {
               createNewSchool(schoolNameInput.value);
             } else {
               selectExistingSchool(selectedSchoolId);
@@ -155,11 +158,7 @@ async function renderSchoolNameInput() {
 
   schoolNameForm.onsubmit = (e) => {
     e.preventDefault();
-    if (!selectedSchoolId) {
-      createNewSchool(schoolNameInput.value);
-    } else if (selectedSchoolId) {
-      selectExistingSchool(selectedSchoolId);
-    }
+    createNewSchool(schoolNameInput.value);
   };
 }
 
