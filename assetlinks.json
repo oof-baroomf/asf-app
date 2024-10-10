@@ -1,0 +1,8 @@
+[{
+      "relation": ["delegate_permission/common.handle_all_urls"],
+      "target": {
+        "namespace": "android_app",
+        "package_name": "ASustainableFuture.PaperConsumptionModel",
+        "sha256_cert_fingerprints": ["F3:14:A9:7D:DC:AF:FB:0A:D4:13:1A:23:9B:61:79:75:75:10:4A:6C:AF:FE:CC:F2:A4:A9:87:FC:DD:15:7E:01"]
+      }
+    }]
