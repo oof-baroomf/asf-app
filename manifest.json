@@ -11,5 +11,7 @@
   "background_color": "#1a3b29",
   "theme_color": "#1a3b29",
   "display": "standalone",
-  "start_url": "/index.html"
+  "start_url": "/index.html",
+  "id": "asfpcm",
+  "description": "This is the Paper Consumption Model, developed by A Sustainable Future. You can view our website at https://asustainablefuture.org."
 }
