@@ -10,14 +10,15 @@ const departments = [
   'Administration', 'Guidance', 'Health Office'
 ];
 
+const BASE_PATH = '/asf-app';
 const GEMINI_API_KEY = atob('QUl6YVN5RF9PN183SUZRbkEyMGtaVW1XYVV5N1Bsb3EydmZxeW9N');
 const BASE_URL = 'https://generativeai.googleapis.com/v1beta/models/gemini-pro:generateContent';
-const isAIPath = window.location.pathname === '/ai';
+const isAIPath = window.location.pathname.endsWith('/ai');
 
 function renderScreen() {
   const path = window.location.pathname;
   
-  if (path === '/ai') {
+  if (path.endsWith('/ai')) {
     renderAIRecommendations();
     return;
   }
@@ -45,7 +46,7 @@ function renderScreen() {
       renderStatistics();
       break;
     case 'recommendations':
-      if (path === '/ai') {
+      if (path.endsWith('/ai')) {
         renderAIRecommendations();
       } else {
         renderRecommendations();
@@ -582,7 +583,7 @@ function renderStatistics() {
       </table>
       <div style="display: flex; justify-content: center; gap: 20px; flex-wrap: wrap;">
         <button onclick="handleNextScreen('recommendations')" style="width: auto; min-width: 140px; padding: 12px 24px; margin: 20px auto 0; font-size: clamp(20px, 3.5vw, 32px);">View Recommendations</button>
-        <button onclick="window.location.href='/ai'; handleNextScreen('recommendations')" style="width: auto; min-width: 140px; padding: 12px 24px; margin: 20px auto 0; font-size: clamp(20px, 3.5vw, 32px);">Get AI Recommendations</button>
+        <button onclick="window.location.href='${BASE_PATH}/ai'; handleNextScreen('recommendations')" style="width: auto; min-width: 140px; padding: 12px 24px; margin: 20px auto 0; font-size: clamp(20px, 3.5vw, 32px);">Get AI Recommendations</button>
       </div>
     </div>
   `;
