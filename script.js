@@ -10,7 +10,18 @@ const departments = [
   'Administration', 'Guidance', 'Health Office'
 ];
 
+const GEMINI_API_KEY = atob('QUl6YVN5RF9PN183SUZRbkEyMGtaVW1XYVV5N1Bsb3EydmZxeW9N');
+const BASE_URL = 'https://generativeai.googleapis.com/v1beta/models/gemini-pro:generateContent';
+const isAIPath = window.location.pathname === '/ai';
+
 function renderScreen() {
+  const path = window.location.pathname;
+  
+  if (path === '/ai') {
+    renderAIRecommendations();
+    return;
+  }
+
   switch (currentScreen) {
     case 'initialization':
       renderInitializationScreen();
@@ -34,7 +45,11 @@ function renderScreen() {
       renderStatistics();
       break;
     case 'recommendations':
-      renderRecommendations();
+      if (path === '/ai') {
+        renderAIRecommendations();
+      } else {
+        renderRecommendations();
+      }
       break;
     case 'visualizations':
       renderVisualizations();
@@ -278,7 +293,7 @@ function renderExtraQuestions() {
 }
 
 function renderResults() {
-  app.innerHTML = `
+  const existingContent = `
     <div style="display: flex; flex-direction: column; justify-content: flex-start; min-height: 100vh; padding-top: 15vh;">
       <img src="logo.png" alt="Paper Consumption Model Logo" style="width: 50%; max-width: 200px; margin: 0 auto 2vw;">
       <h1 style="font-size: clamp(32px, 5vw, 64px); margin-bottom: 3vw;">Results for ${schoolData.name}</h1>
@@ -307,6 +322,14 @@ function renderResults() {
       <button onclick="handleNextScreen('visualizations')" style="width: auto; min-width: 140px; padding: 12px 24px; margin: 20px auto 0; font-size: clamp(20px, 3.5vw, 32px);">View Visualizations</button>
     </div>
   `;
+  
+  const aiButton = `
+    <button onclick="window.location.href='/ai'" style="width: auto; min-width: 140px; padding: 12px 24px; margin: 20px auto 0; font-size: clamp(20px, 3.5vw, 32px);">
+      Get AI Recommendations
+    </button>
+  `;
+
+  app.innerHTML = existingContent + aiButton;
 }
 
 async function renderVisualizations() {
@@ -557,12 +580,42 @@ function renderStatistics() {
           </tr>
         </tbody>
       </table>
-      <button onclick="handleNextScreen('recommendations')" style="width: auto; min-width: 140px; padding: 12px 24px; margin: 20px auto 0; font-size: clamp(20px, 3.5vw, 32px);">View Recommendations</button>
+      <div style="display: flex; justify-content: center; gap: 20px; flex-wrap: wrap;">
+        <button onclick="handleNextScreen('recommendations')" style="width: auto; min-width: 140px; padding: 12px 24px; margin: 20px auto 0; font-size: clamp(20px, 3.5vw, 32px);">View Recommendations</button>
+        <button onclick="window.location.href='/ai'; handleNextScreen('recommendations')" style="width: auto; min-width: 140px; padding: 12px 24px; margin: 20px auto 0; font-size: clamp(20px, 3.5vw, 32px);">Get AI Recommendations</button>
+      </div>
     </div>
   `;
 }
 
-function renderRecommendations() {
+async function renderRecommendations() {
+  if (isAIPath) {
+    app.innerHTML = `
+      <div style="text-align: center; padding: 20px;">
+        <img src="logo.png" alt="Paper Consumption Model Logo" style="width: 50%; max-width: 200px; margin: 0 auto 2vw;">
+        <h1>AI-Powered Recommendations</h1>
+        <div id="loadingMessage">Generating personalized recommendations...</div>
+        <div id="aiRecommendations" style="display: none; text-align: left; max-width: 800px; margin: 0 auto; padding: 20px;">
+        </div>
+        <button onclick="handleNextScreen('statistics')" style="margin-top: 20px;">Back to Statistics</button>
+      </div>
+    `;
+
+    const recommendations = await generateAIRecommendations();
+    document.getElementById('loadingMessage').style.display = 'none';
+    const aiRecommendationsDiv = document.getElementById('aiRecommendations');
+    aiRecommendationsDiv.style.display = 'block';
+    aiRecommendationsDiv.innerHTML = `
+      <div style="background-color: #2c4a2c; padding: 20px; border-radius: 8px;">
+        <h2 style="color: #fff7e2; margin-bottom: 20px;">Personalized Department Recommendations</h2>
+        <div style="white-space: pre-wrap; color: #fff7e2; font-size: 1.1em; line-height: 1.6;">
+          ${recommendations}
+        </div>
+      </div>
+    `;
+    return;
+  }
+
   let content = `
     <div style="text-align: center; margin-bottom: 20px;">
       <img src="logo.png" alt="Paper Consumption Model Logo" style="max-width: 200px; height: auto;">
@@ -784,6 +837,48 @@ function calculateEnvironmentalImpact(totalYearly) {
     voc: Math.round(totalYearly * (3 / 500)),
     energy: Math.round(totalYearly * (25 / 500))
   };
+}
+
+async function generateAIRecommendations() {
+  const prompt = `
+    I have a school with the following department paper consumption data:
+    ${JSON.stringify(schoolData.yearlyResults, null, 2)}
+
+    Total yearly consumption: ${schoolData.totalYearly} sheets
+    Sustainability Level: ${schoolData.sustainabilityLevel}
+
+    Please provide specific, actionable recommendations for each department to reduce their paper consumption. 
+    Focus on the departments with highest usage first.
+    Include both technological solutions and process improvements.
+    Keep recommendations practical and implementable.
+    Format the response without markdown.
+  `;
+
+  try {
+    const response = await fetch(`${BASE_URL}?key=${GEMINI_API_KEY}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        contents: [{
+          parts: [{
+            text: prompt
+          }]
+        }]
+      })
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to get AI recommendations');
+    }
+
+    const data = await response.json();
+    return data.candidates[0].content.parts[0].text;
+  } catch (error) {
+    console.error('Error getting AI recommendations:', error);
+    return 'Unable to generate AI recommendations at this time. Please try again later.';
+  }
 }
 
 // Start the application
