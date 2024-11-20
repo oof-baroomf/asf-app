@@ -283,28 +283,30 @@ function renderResults() {
       <img src="logo.png" alt="Paper Consumption Model Logo" style="width: 50%; max-width: 200px; margin: 0 auto 2vw;">
       <h1 style="font-size: clamp(32px, 5vw, 64px); margin-bottom: 3vw;">Results for ${schoolData.name}</h1>
       <h3 style="font-size: clamp(24px, 4vw, 48px); margin-bottom: 2vw;">Yearly Paper Consumption</h3>
-      <table class="results-table" style="font-size: clamp(16px, 2.5vw, 24px);">
-        <thead>
-          <tr>
-            <th>Department</th>
-            <th>Sheets</th>
-            <th>Cost (Paper)</th>
-            <th>Cost (Ink)</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${schoolData.departments.map(dept => `
+      <div style="width: 95%; max-width: 800px; margin: 0 auto;">
+        <table class="results-table" style="font-size: clamp(16px, 2.5vw, 24px); width: 100%;">
+          <thead>
             <tr>
-              <td>${dept}</td>
-              <td>${Number(Math.round(schoolData.yearlyResults[dept])).toLocaleString(undefined, {maximumSignificantDigits: 5})}</td>
-              <td>$${Number(Math.round(schoolData.yearlyResults[dept] * 0.015)).toLocaleString(undefined, {maximumSignificantDigits: 5})}</td>
-              <td>$${Number(Math.round(schoolData.yearlyResults[dept] * 0.05)).toLocaleString(undefined, {maximumSignificantDigits: 5})} - $${Number(Math.round(schoolData.yearlyResults[dept] * 0.15)).toLocaleString(undefined, {maximumSignificantDigits: 5})}</td>
+              <th>Department</th>
+              <th>Sheets</th>
+              <th>Cost (Paper)</th>
+              <th>Cost (Ink)</th>
             </tr>
-          `).join('')}
-        </tbody>
-      </table>
-      <p style="font-size: clamp(18px, 3vw, 32px); margin-top: 2vw;">Total Yearly Consumption: ${Number(Math.round(schoolData.totalYearly)).toLocaleString(undefined, {maximumSignificantDigits: 5})} sheets</p>
-      <button onclick="handleNextScreen('visualizations')" style="width: auto; min-width: 140px; padding: 12px 24px; margin: 20px auto 0; font-size: clamp(20px, 3.5vw, 32px);">View Visualizations</button>
+          </thead>
+          <tbody>
+            ${schoolData.departments.map(dept => `
+              <tr>
+                <td>${dept}</td>
+                <td>${Number(Math.round(schoolData.yearlyResults[dept])).toLocaleString(undefined, {maximumSignificantDigits: 5})}</td>
+                <td>$${Number(Math.round(schoolData.yearlyResults[dept] * 0.015)).toLocaleString(undefined, {maximumSignificantDigits: 5})}</td>
+                <td>$${Number(Math.round(schoolData.yearlyResults[dept] * 0.05)).toLocaleString(undefined, {maximumSignificantDigits: 5})} - $${Number(Math.round(schoolData.yearlyResults[dept] * 0.15)).toLocaleString(undefined, {maximumSignificantDigits: 5})}</td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+        <p style="font-size: clamp(18px, 3vw, 32px); margin-top: 2vw;">Total Yearly Consumption: ${Number(Math.round(schoolData.totalYearly)).toLocaleString(undefined, {maximumSignificantDigits: 5})} sheets</p>
+        <button onclick="handleNextScreen('visualizations')" style="width: auto; min-width: 140px; padding: 12px 24px; margin: 20px auto 0; font-size: clamp(20px, 3.5vw, 32px);">View Visualizations</button>
+      </div>
     </div>
   `;
 }
@@ -327,10 +329,12 @@ async function renderVisualizations() {
     <div style="display: flex; flex-direction: column; justify-content: flex-start; min-height: 100vh; padding: 20px;">
       <img src="logo.png" alt="Paper Consumption Model Logo" style="width: 50%; max-width: 200px; margin: 0 auto 2vw;">
       <h1 style="font-size: clamp(32px, 5vw, 64px); margin-bottom: 3vw;">Visualizations for ${schoolData.name}</h1>
-      <div id="comparisonGraph" style="width:100%; height:400px;"></div>
-      <div id="departmentGraph" style="width:100%; height:400px;"></div>
-      <div id="consumptionOverTimeGraph" style="width:100%; height:400px;"></div>
-      <button onclick="handleNextScreen('statistics')" style="width: auto; min-width: 140px; padding: 12px 24px; margin: 20px auto 0; font-size: clamp(20px, 3.5vw, 32px);">View Statistics</button>
+      <div style="width: 95%; max-width: 1200px; margin: 0 auto;">
+        <div id="comparisonGraph" style="width:100%; height:400px; margin-bottom: 20px;"></div>
+        <div id="departmentGraph" style="width:100%; height:400px; margin-bottom: 20px;"></div>
+        <div id="consumptionOverTimeGraph" style="width:100%; height:400px; margin-bottom: 20px;"></div>
+        <button onclick="handleNextScreen('statistics')" style="width: auto; min-width: 140px; padding: 12px 24px; margin: 20px auto 0; font-size: clamp(20px, 3.5vw, 32px);">View Statistics</button>
+      </div>
     </div>
   `;
 
@@ -506,9 +510,9 @@ function renderStatistics() {
   const environmentalImpact = calculateEnvironmentalImpact(schoolData.totalYearly);
   
   app.innerHTML = `
-    <div>
+    <div style="width: 95%; max-width: 800px; margin: 0 auto;">
       <h2 style="font-size: clamp(32px, 5vw, 64px); margin-top: 3vw; margin-bottom: 2vw;">Statistics for ${schoolData.name}</h2>
-      <table class="results-table" style="font-size: clamp(16px, 2.5vw, 24px);">
+      <table class="results-table" style="font-size: clamp(16px, 2.5vw, 24px); width: 100%;">
         <tbody>
           <tr>
             <td>Sustainability Level:</td>
@@ -525,7 +529,7 @@ function renderStatistics() {
         </tbody>
       </table>
       <h3 style="font-size: clamp(24px, 4vw, 48px); margin-top: 3vw; margin-bottom: 2vw;">Environmental Impact if changes are implemented</h3>
-      <table class="results-table" style="font-size: clamp(16px, 2.5vw, 24px);">
+      <table class="results-table" style="font-size: clamp(16px, 2.5vw, 24px); width: 100%;">
         <tbody>
           <tr>
             <td>Trees saved:</td>
@@ -564,9 +568,10 @@ function renderStatistics() {
 
 function renderRecommendations() {
   let content = `
-    <div style="text-align: center; margin-bottom: 20px;">
-      <img src="logo.png" alt="Paper Consumption Model Logo" style="max-width: 200px; height: auto;">
-    </div>
+    <div style="width: 95%; max-width: 800px; margin: 0 auto;">
+      <div style="text-align: center; margin-bottom: 20px;">
+        <img src="logo.png" alt="Paper Consumption Model Logo" style="max-width: 200px; height: auto;">
+      </div>
   `;
 
   switch (schoolData.sustainabilityLevel) {
