@@ -1,0 +1,51 @@
+# Privacy Policy for ASF Paper Consumption Model
+
+Last updated: October 27, 2024
+
+## Introduction
+This privacy policy explains how the ASF Paper Consumption Model app handles user data. Our app helps users model and track paper consumption data while maintaining user privacy and data security.
+
+## Data Collection and Use
+Our app collects and stores the following information:
+- Paper consumption data entered by users
+- Calculation models and results
+- Usage timestamps
+
+This data is:
+- Stored locally in the app's database
+- Used only for providing the paper consumption modeling functionality
+- Not shared with third parties
+- Not used for advertising or tracking purposes
+- Not transferred outside the user's device unless explicitly initiated by the user
+
+## Data Storage and Security
+- All data is stored locally on the user's device in a SQLite database
+- Data persists until the app is uninstalled or data is manually cleared
+- Users can delete their data at any time through the app's interface
+- Database is private to the application and not accessible by other apps
+
+## Permissions Used
+The app requires the following permissions:
+- Internet access: Required to load the web interface
+- Storage access: Required to maintain the local database of consumption data
+
+## User Rights
+Users can:
+- View all stored data within the app
+- Export their data [if you provide this feature]
+- Delete their data at any time
+- Clear all stored information by uninstalling the app
+
+## Third-Party Services
+This app only displays content from the ASF Paper Consumption Model web interface and stores data locally. No data is shared with third-party services.
+
+## Data Backup
+- Data is not automatically backed up to any cloud service
+- Users are responsible for their own data backup if needed
+
+## Contact Information
+For any questions regarding this privacy policy or to request information about your stored data, please contact:
+asustainablfuturetechnology@gmail.com
+
+## Changes to This Policy
+We may update this privacy policy as needed. Users will be notified of any changes by updating the "Last updated" date at the top of this policy.
