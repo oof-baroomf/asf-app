@@ -570,6 +570,15 @@ function renderStatistics() {
 }
 
 async function renderRecommendations() {
+  const recommendationsSection = document.getElementById('recommendations-section');
+
+  // Display loading indicator
+  recommendationsSection.innerHTML = `
+    <div class="loading-spinner">
+      <p>Loading recommendations...</p>
+    </div>
+  `;
+
   const prompt = `Given the following school statistics, provide specific recommendations for reducing paper consumption:
     - Total yearly paper consumption: ${schoolData.totalYearly} sheets
     - Sustainability level: ${schoolData.sustainabilityLevel}
@@ -578,8 +587,8 @@ async function renderRecommendations() {
       * Trees that could be saved: ${calculateEnvironmentalImpact(schoolData.totalYearly).trees}
       * Water that could be saved: ${calculateEnvironmentalImpact(schoolData.totalYearly).water} liters
       * CO2 reduction potential: ${calculateEnvironmentalImpact(schoolData.totalYearly).co2} kg
-    
-    Format the response as HTML without styling classes.`;
+
+    Format the response as Markdown with appropriate headings and tables. Do not include any buttons or interactive elements.`;
 
   try {
     const response = await fetch(
@@ -598,34 +607,30 @@ async function renderRecommendations() {
     );
 
     const data = await response.json();
-    const recommendationsHTML = data.candidates[0].content.parts[0].text;
+    const recommendationsMarkdown = data.candidates[0].content.parts[0].text;
 
-    // Create a temporary DOM element to manipulate the received HTML
-    const tempDiv = document.createElement('div');
-    tempDiv.innerHTML = recommendationsHTML;
+    // Convert Markdown to HTML using Marked.js
+    let recommendationsHTML = marked.parse(recommendationsMarkdown);
 
-    // Remove any inline styles and conflicting classes
-    tempDiv.querySelectorAll('*').forEach(element => {
-      element.removeAttribute('style'); // Remove inline styles
-      // Optionally, add your app's CSS classes for consistency
-      // Example: element.classList.add('cormorant-garamond-regular');
-    });
-
-    // Wrap the recommendations in a container that uses your app's styles
-    app.innerHTML = `
-      <div class="recommendations-container" style="width: 95%; max-width: 800px; margin: 0 auto;">
-        <div style="text-align: center; margin-bottom: 20px;">
-          <img src="logo.png" alt="Paper Consumption Model Logo" style="max-width: 200px; height: auto;">
-        </div>
-        ${tempDiv.innerHTML}
+    // Wrap in a container for consistent styling
+    recommendationsHTML = `
+      <div class="recommendations-wrapper">
+        ${recommendationsHTML}
       </div>
     `;
+
+    // Sanitize the HTML to prevent XSS
+    const sanitizedHTML = DOMPurify.sanitize(recommendationsHTML);
+
+    // Inject the sanitized HTML into the recommendations section
+    recommendationsSection.innerHTML = sanitizedHTML;
   } catch (error) {
     console.error('Error generating recommendations:', error);
-    app.innerHTML = `
-      <div style="width: 95%; max-width: 800px; margin: 0 auto;">
+    recommendationsSection.innerHTML = `
+      <div class="error-message">
         <h2>Error Generating Recommendations</h2>
         <p>There was an error generating custom recommendations. Please try again later.</p>
+        <button class="custom-button" onclick="renderRecommendations()">Retry</button>
       </div>
     `;
   }

@@ -96,3 +96,88 @@ input[type="checkbox"] {
   background-color: #3c5a3c;
   color: #fff7e2;
 }
+
+/* Recommendations Wrapper */
+.recommendations-wrapper {
+  width: 95%;
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 2vw;
+  font-family: "Cormorant Garamond", "Georgia", serif;
+  color: #fff7e2; /* Matches the body text color */
+  text-align: left; /* Align text to the left for readability */
+}
+
+/* Headings in Recommendations */
+.recommendations-wrapper h1,
+.recommendations-wrapper h2,
+.recommendations-wrapper h3 {
+  color: #fff7e2;
+  font-family: "Cormorant Garamond", "Georgia", serif;
+  font-weight: 400;
+  font-style: normal;
+  font-size: 3vw; /* Consistent with existing h1, h2, h3 */
+  margin-top: 3vw;
+  margin-bottom: 2vw;
+}
+
+/* Paragraphs and List Items in Recommendations */
+.recommendations-wrapper p,
+.recommendations-wrapper li {
+  font-family: "Cormorant Garamond", "Georgia", serif;
+  font-weight: 400;
+  font-style: normal;
+  color: #fff7e2;
+  font-size: 1.5vw;
+  line-height: 1.6;
+}
+
+/* Tables in Recommendations */
+.recommendations-wrapper table {
+  width: 100%;
+  border-collapse: collapse;
+  background-color: #2c4a2c; /* Matches .results-table background */
+  font-size: 1.5vw; /* Consistent with existing table font size */
+  margin-top: 1vw;
+}
+
+.recommendations-wrapper th,
+.recommendations-wrapper td {
+  border: 1px solid #4a6d4a; /* Matches .results-table border */
+  padding: 12px;
+  text-align: left;
+  color: #fff7e2;
+}
+
+.recommendations-wrapper th {
+  background-color: #3c5a3c; /* Matches .results-table header */
+}
+
+/* Images in Recommendations */
+.recommendations-wrapper img {
+  max-width: 100%;
+  height: auto;
+}
+
+/* Error Messages in Recommendations */
+.recommendations-wrapper .error-message {
+  text-align: center;
+  color: #fff7e2;
+}
+
+.recommendations-wrapper .error-message h2 {
+  font-size: 3vw;
+  margin-bottom: 1vw;
+}
+
+.recommendations-wrapper .error-message p {
+  font-size: 1.5vw;
+  margin-bottom: 2vw;
+}
+
+/* Loading Indicators in Recommendations */
+.recommendations-wrapper .loading-spinner {
+  text-align: center;
+  font-size: 1.5vw;
+  color: #fff7e2;
+}
