@@ -579,11 +579,11 @@ async function renderRecommendations() {
       * Water that could be saved: ${calculateEnvironmentalImpact(schoolData.totalYearly).water} liters
       * CO2 reduction potential: ${calculateEnvironmentalImpact(schoolData.totalYearly).co2} kg
     
-    Format the response as HTML with appropriate styling classes.`;
+    Format the response as HTML without styling classes.`;
 
   try {
     const response = await fetch(
-      "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=" + yekipa,
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${yekipa}`,
       {
         method: "POST",
         headers: {
@@ -591,21 +591,33 @@ async function renderRecommendations() {
         },
         body: JSON.stringify({
           contents: [{
-            parts: [{text: prompt}]
+            parts: [{ text: prompt }]
           }]
         })
       }
     );
 
     const data = await response.json();
-    const recommendations = data.candidates[0].content.parts[0].text;
+    const recommendationsHTML = data.candidates[0].content.parts[0].text;
 
+    // Create a temporary DOM element to manipulate the received HTML
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = recommendationsHTML;
+
+    // Remove any inline styles and conflicting classes
+    tempDiv.querySelectorAll('*').forEach(element => {
+      element.removeAttribute('style'); // Remove inline styles
+      // Optionally, add your app's CSS classes for consistency
+      // Example: element.classList.add('cormorant-garamond-regular');
+    });
+
+    // Wrap the recommendations in a container that uses your app's styles
     app.innerHTML = `
-      <div style="width: 95%; max-width: 800px; margin: 0 auto;">
+      <div class="recommendations-container" style="width: 95%; max-width: 800px; margin: 0 auto;">
         <div style="text-align: center; margin-bottom: 20px;">
           <img src="logo.png" alt="Paper Consumption Model Logo" style="max-width: 200px; height: auto;">
         </div>
-        ${recommendations}
+        ${tempDiv.innerHTML}
       </div>
     `;
   } catch (error) {
