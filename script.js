@@ -300,14 +300,14 @@ function renderResults() {
             ${schoolData.departments.map(dept => `
               <tr>
                 <td>${dept}</td>
-                <td>${Number(Math.round(schoolData.yearlyResults[dept])).toLocaleString(undefined, {maximumSignificantDigits: 5})}</td>
-                <td>$${Number(Math.round(schoolData.yearlyResults[dept] * 0.015)).toLocaleString(undefined, {maximumSignificantDigits: 5})}</td>
-                <td>$${Number(Math.round(schoolData.yearlyResults[dept] * 0.05)).toLocaleString(undefined, {maximumSignificantDigits: 5})} - $${Number(Math.round(schoolData.yearlyResults[dept] * 0.15)).toLocaleString(undefined, {maximumSignificantDigits: 5})}</td>
+                <td>${Number(Math.round(schoolData.yearlyResults[dept])).toLocaleString()}</td>
+                <td>${(Math.round(schoolData.yearlyResults[dept] * 0.015)).toLocaleString(undefined, {style: 'currency', currency: navigator.language.startsWith('en') ? 'USD' : 'EUR'})}</td>
+                <td>${(Math.round(schoolData.yearlyResults[dept] * 0.05)).toLocaleString(undefined, {style: 'currency', currency: navigator.language.startsWith('en') ? 'USD' : 'EUR'})} - ${(Math.round(schoolData.yearlyResults[dept] * 0.15)).toLocaleString(undefined, {style: 'currency', currency: navigator.language.startsWith('en') ? 'USD' : 'EUR'})}</td>
               </tr>
             `).join('')}
           </tbody>
         </table>
-        <p style="font-size: clamp(18px, 3vw, 32px); margin-top: 2vw;">Total Yearly Consumption: ${Number(Math.round(schoolData.totalYearly)).toLocaleString(undefined, {maximumSignificantDigits: 5})} sheets</p>
+        <p style="font-size: clamp(18px, 3vw, 32px); margin-top: 2vw;">Total Yearly Consumption: ${Number(Math.round(schoolData.totalYearly)).toLocaleString()} sheets</p>
         <button onclick="handleNextScreen('visualizations')" style="width: auto; min-width: 140px; padding: 12px 24px; margin: 20px auto 0; font-size: clamp(20px, 3.5vw, 32px);">View Visualizations</button>
       </div>
     </div>
@@ -523,11 +523,11 @@ function renderStatistics() {
           </tr>
           <tr>
             <td>Suggested Yearly Usage:</td>
-            <td>${Number(schoolData.suggestedYearlyUsage).toLocaleString(undefined, {maximumSignificantDigits: 5})} reams</td>
+            <td>${Number(schoolData.suggestedYearlyUsage).toLocaleString()} reams</td>
           </tr>
           <tr>
             <td>Potential Cost Savings:</td>
-            <td>$${Number(schoolData.potentialSavings).toLocaleString(undefined, {maximumSignificantDigits: 5})}</td>
+            <td>${Number(schoolData.potentialSavings).toLocaleString(undefined, {style: 'currency', currency: navigator.language.startsWith('en') ? 'USD' : 'EUR'})}</td>
           </tr>
         </tbody>
       </table>
@@ -536,31 +536,31 @@ function renderStatistics() {
         <tbody>
           <tr>
             <td>Trees saved:</td>
-            <td>${Number(environmentalImpact.trees).toLocaleString(undefined, {maximumSignificantDigits: 5})}</td>
+            <td>${Number(environmentalImpact.trees).toLocaleString()}</td>
           </tr>
           <tr>
             <td>Water saved:</td>
-            <td>${Number(environmentalImpact.water).toLocaleString(undefined, {maximumSignificantDigits: 5})} liters</td>
+            <td>${Number(environmentalImpact.water).toLocaleString()} liters</td>
           </tr>
           <tr>
             <td>CO2 reduction:</td>
-            <td>${Number(environmentalImpact.co2).toLocaleString(undefined, {maximumSignificantDigits: 5})} kg</td>
+            <td>${Number(environmentalImpact.co2).toLocaleString()} kg</td>
           </tr>
           <tr>
             <td>Solid waste reduction:</td>
-            <td>${Number(environmentalImpact.solidWaste).toLocaleString(undefined, {maximumSignificantDigits: 5})} kg</td>
+            <td>${Number(environmentalImpact.solidWaste).toLocaleString()} kg</td>
           </tr>
           <tr>
             <td>Air pollutants reduction:</td>
-            <td>${Number(environmentalImpact.airPollutants).toLocaleString(undefined, {maximumSignificantDigits: 5})} g</td>
+            <td>${Number(environmentalImpact.airPollutants).toLocaleString()} g</td>
           </tr>
           <tr>
             <td>VOC reduction:</td>
-            <td>${Number(environmentalImpact.voc).toLocaleString(undefined, {maximumSignificantDigits: 5})} g</td>
+            <td>${Number(environmentalImpact.voc).toLocaleString()} g</td>
           </tr>
           <tr>
             <td>Energy saved:</td>
-            <td>${Number(environmentalImpact.energy).toLocaleString(undefined, {maximumSignificantDigits: 5})} kWh</td>
+            <td>${Number(environmentalImpact.energy).toLocaleString()} kWh</td>
           </tr>
         </tbody>
       </table>
@@ -570,14 +570,20 @@ function renderStatistics() {
 }
 
 async function renderRecommendations() {
-  const recommendationsSection = document.getElementById('recommendations-section');
-
-  // Display loading indicator
-  recommendationsSection.innerHTML = `
-    <div class="loading-spinner">
-      <p>Loading recommendations...</p>
+  app.innerHTML = `
+    <div class="screen-container">
+      <h2 class="screen-title">Recommendations</h2>
+      <div id="recommendations-section">
+        <div class="loading-container">
+          <div class="loading-spinner"></div>
+          <p>Generating custom recommendations...</p>
+        </div>
+      </div>
+      <button onclick="handleNextScreen('visualizations')" class="next-button">View Visualizations</button>
     </div>
   `;
+
+  const recommendationsSection = document.getElementById('recommendations-section');
 
   const prompt = `Given the following school statistics, provide specific recommendations for reducing paper consumption:
     - Total yearly paper consumption: ${schoolData.totalYearly} sheets
@@ -588,7 +594,7 @@ async function renderRecommendations() {
       * Water that could be saved: ${calculateEnvironmentalImpact(schoolData.totalYearly).water} liters
       * CO2 reduction potential: ${calculateEnvironmentalImpact(schoolData.totalYearly).co2} kg
 
-    Format the response as Markdown with appropriate headings and tables. Do not include any buttons or interactive elements.`;
+    Format the response as Markdown with appropriate headings and bullet points. Focus on practical, actionable recommendations.`;
 
   try {
     const response = await fetch(
@@ -608,29 +614,21 @@ async function renderRecommendations() {
 
     const data = await response.json();
     const recommendationsMarkdown = data.candidates[0].content.parts[0].text;
-
-    // Convert Markdown to HTML using Marked.js
-    let recommendationsHTML = marked.parse(recommendationsMarkdown);
-
-    // Wrap in a container for consistent styling
-    recommendationsHTML = `
-      <div class="recommendations-wrapper">
-        ${recommendationsHTML}
-      </div>
-    `;
-
-    // Sanitize the HTML to prevent XSS
+    const recommendationsHTML = marked.parse(recommendationsMarkdown);
     const sanitizedHTML = DOMPurify.sanitize(recommendationsHTML);
 
-    // Inject the sanitized HTML into the recommendations section
-    recommendationsSection.innerHTML = sanitizedHTML;
+    recommendationsSection.innerHTML = `
+      <div class="content-container">
+        ${sanitizedHTML}
+      </div>
+    `;
   } catch (error) {
     console.error('Error generating recommendations:', error);
     recommendationsSection.innerHTML = `
-      <div class="error-message">
-        <h2>Error Generating Recommendations</h2>
-        <p>There was an error generating custom recommendations. Please try again later.</p>
-        <button class="custom-button" onclick="renderRecommendations()">Retry</button>
+      <div class="error-container">
+        <h3>Unable to Generate Recommendations</h3>
+        <p>There was an error generating your custom recommendations. Please try again.</p>
+        <button onclick="renderRecommendations()" class="retry-button">Try Again</button>
       </div>
     `;
   }
